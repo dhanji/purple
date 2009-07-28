@@ -1,0 +1,200 @@
+module example.one
+
+require examples
+
+# class def
+class MyClass {
+  a : String
+  b : Integer
+
+  ls : Long[]
+}
+
+# class def with factory
+class Car(name : String, wheels: Int)
+Car.new() # compile error, missing args
+
+
+# free method (global)
+def free()
+  1
+
+
+# list comprehension
+[ i | i in 1..10 if i > 3]
+
+
+# pattern matching function
+def reverse:
+  []     -> []
+  [x:xs] -> reverse(xs) : x
+
+
+# postfix application of function
+"hello, how are you".reverse
+
+# list projection with closure call
+[1,2,3,4].map (x -> x++)
+
+# list projection with eta abstraction
+[1..10].map(@increment)
+
+
+# generic class definition
+class List[A] {
+  property size : Int
+  next : A
+}
+
+# list functions
+def push(list : List of A, a)
+  list.next = a
+
+
+
+# postfix function call without params
+[1..10].push 11
+
+
+# infix function call to add two numbers
+3 plus 4
+
+# the function is declared as
+def plus(a, b)
+  a + b
+
+
+
+# monkey patch can access private fields
+def List.sort() {
+  quicksort(@head)
+}
+
+
+# monkey patching existing instances (replaces method with same signature)
+list.sort = mergesort
+
+# does not affect class definition
+ls = List.new
+ls.sort() # is still quicksort
+
+# replace monkey patch to class is not allowed
+
+# enumeration
+enum Shows {
+  :family_guy, :american_dad, :turkey
+}
+
+
+# referencing a qualified enum
+watch Shows:family_guy
+
+
+# require makes enums available in the current lexical scope
+require tv.Shows
+
+watch :family_guy
+
+# enums with name collisions are illegal
+require tv.Shows
+require tv.Cartoons  # compile error
+
+# enums can be monkey patched, this adds to the Shows
+def Shows:south_park
+
+
+# Strings are closures too
+name := "Dhanji"
+template := "hi ${name}, how are you?" # toString is invoked
+
+
+# type inheritance via left to right mixins
+class Bmw mixin Car {
+  model : String
+}
+
+
+# monkey patching an instance with a type mixin
+car = Car.new mixin Comparable[Car]
+
+# infix call between two cars to compare, evaluated on the left type
+puts car compare_to other_car
+
+# call a factory function with named parameters (fields)
+bmw = Car.new(model => :hydrogen, wheels => 4)
+
+# inline map construction
+map = [ "one" : 1, "two" : 2 ]
+map.put("one" : 2)  # compile error. Can we do this?
+
+
+# an ordered pair/tuple (with homogenous type)
+(1 : 2)
+
+# append a number to the tuple, forms a list
+list = (1 : 2) : 3
+
+# A heterogenous tuple
+( 1 : "one" )
+
+# construct a list with heterogenous typing:
+list = [1, "two", 3]
+list.push(4)      #legal
+list.push("five") #legal
+list.push(6.0)    # illegal, produces compile error
+
+class Me {
+  name: String
+  age: Int
+}
+
+# free function (not attached to class Me)
+def talk(a: Me)
+  "hello"
+
+# talk can be invoked as free:
+talk(Me.new)
+
+# or as postfix:
+Me.new.talk
+
+
+# a function can be a do block:
+def walk_dog(dog) {
+  dog.enleash
+  dog.walk  #guaranteed to occur in lexical order
+}
+
+
+# a lambda function is not sequential
+def compute(list)
+  list[0] + compute tail(list)
+
+  list[1] = 1 # compile error, must be left-indented
+
+# lambda functions can be multi-line using parentheses
+def compute(list)
+  list[0] + (list[1]
+          + 2)       #indentation does not matter
+
+
+# or with dangling infix method calls
+def compute(list)
+  list[0] +
+          1       #indentation does not matter  ????? no?
+
+
+# but not with postfix invocations:
+
+def compute(list)
+  list
+    .first #compile error
+
+# unless they are inside a do block or parentheses
+def compute(list) {
+  list
+    .first    #legal, returns first item in list
+}
+
+# a multi-singleton (singleton registry pattern)
+enum 
