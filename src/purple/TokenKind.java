@@ -18,6 +18,7 @@ public enum TokenKind {
   COMMA,
   COLON,
   THIN_ARROW,
+  FAT_ARROW,
 
   /** Keywords **/
   MODULE,
@@ -35,6 +36,8 @@ public enum TokenKind {
     // TODO chance for optimization/interning
     if ("->".equals(st)) {
       return THIN_ARROW;
+    } else if ("=>".equals(st)) {
+      return FAT_ARROW;
     }
 
     // TODO validate ident or return null

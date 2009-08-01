@@ -1,11 +1,13 @@
 package purple;
 
 import org.junit.Test;
+import purple.syntax.Parser;
+import purple.syntax.model.SyntaxNode;
 
 /**
  * @author Dhanji R. Prasanna (dhanji@gmail com)
  */
-public class PurpleParserTest {
+public class TokenizerTest {
 
   @Test
   public final void simpleExpressions() {
@@ -19,7 +21,7 @@ public class PurpleParserTest {
     new Tokenizer("def +(x, y)" +
         " x.add_to(y) ").tokenize();
   }
-  
+
   @Test
   public final void doBlockFunctionDefinition() {
     new Tokenizer("def +(x, y) {" +
@@ -27,4 +29,6 @@ public class PurpleParserTest {
         " x.add_to(0) \n" +
         "}").tokenize();
   }
+
+
 }

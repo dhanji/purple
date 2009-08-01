@@ -92,6 +92,7 @@ public class Tokenizer {
   private void reduceTokenStream() {
     List<Token> out = new ArrayList<Token>();
 
+    int infixWraps = 0;  //number of times we've rewritten an infix as postfix parenthetical
     for (int i = 0; i < tokens.size(); i++) {
       Token token = tokens.get(i);
       Token next = lookAhead(i, 1);
@@ -112,10 +113,30 @@ public class Tokenizer {
         }
       }
 
+      // Reduce infix calls by rewriting them as postfix dot-notation calls
+      if (null != next
+          && TokenKind.DOT != token.getKind()
+          && TokenKind.IDENT == next.getKind()) {
+        
+        out.add(token);
+        out.add(new Token(".", TokenKind.DOT));
+        out.add(next);
+        out.add(new Token("(", TokenKind.LPAREN));
+        infixWraps++;
+
+        // skip ahead 1
+        i++;
+        continue;
+      }
+
       
       // otherwise do a dumb copy
       out.add(token);
     }
+
+    // terminate all infix psuedo-wraps
+    for (int x = 0; x < infixWraps; x++)
+      out.add(new Token(")", TokenKind.RPAREN));
 
     //replace token stream with reduced stream
     tokens = out;
@@ -154,7 +175,7 @@ public class Tokenizer {
 
     if (null == tokenKind) {
       // add compiler error.
-      throw new RuntimeException("compile error, unknown symbol kind: " + stringToken);
+      throw new RuntimeException("compile error, unrecognized symbol: " + stringToken);
     }
 
     final Token token = new Token(stringToken, tokenKind);
