@@ -118,9 +118,9 @@ public class Parser {
   private SyntaxNode processToken(Token token) {
     // Interpret literals as they are
     if (TokenKind.INTEGER == token.getKind()) {
-      return new IntegerNode(Integer.parseInt(token.getName()));
+      return new IntegerLiteral(Integer.parseInt(token.getName()));
     } else if (TokenKind.DECIMAL == token.getKind()) {
-      return new DecimalNode(Double.parseDouble(token.getName()));
+      return new Decimal(Double.parseDouble(token.getName()));
     }
 
     // otherwise validate and treat as identifier...

@@ -3,10 +3,10 @@ package purple.syntax.model;
 /**
  * @author Dhanji R. Prasanna (dhanji@gmail com)
  */
-public class IntegerNode implements SyntaxNode {
+public class IntegerLiteral implements SyntaxNode {
   private final int value;
 
-  public IntegerNode(int value) {
+  public IntegerLiteral(int value) {
     this.value = value;
   }
 
@@ -16,7 +16,7 @@ public class IntegerNode implements SyntaxNode {
 
   @Override
   public String toString() {
-    return "IntegerNode{" +
+    return "IntegerLiteral{" +
         "value=" + value +
         '}';
   }
