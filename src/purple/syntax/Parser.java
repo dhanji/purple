@@ -36,7 +36,12 @@ public class Parser {
     for (;index < length; index++) {
       Token token = tokens.get(index);
 
-      // process first token as is.
+      if (TokenKind.DEF == token.getKind()) {
+        functionDef(index);
+      }
+
+
+      // process first token as an expression (literal, var, etc.)
       node = processToken(token);
       final Token next = lookAhead(index, 1);
 
@@ -60,6 +65,25 @@ public class Parser {
     }
 
     return node;
+  }
+
+  /**
+   * Parsing rule for function definitions.
+   */
+  private void functionDef(int index) {
+    // This is a function definition.
+    Token funcName = lookAhead(index, 1);
+    Token lparen = lookAhead(index, 2);
+    boolean isThunk = lparen.getKind() == TokenKind.COLON;
+
+    check(funcName.getKind() == TokenKind.IDENT, "def must be followed by a valid identifier");
+    check(lparen.getKind() == TokenKind.LPAREN || isThunk,
+        "function def signature must contain arg list (..) or :");
+
+    skip += 2;
+    if (isThunk) {
+      
+    }
   }
 
   /**
