@@ -76,13 +76,28 @@ public class Parser {
     Token lparen = lookAhead(index, 2);
     boolean isThunk = lparen.getKind() == TokenKind.COLON;
 
+    System.out.println("function name = " + funcName);
     check(funcName.getKind() == TokenKind.IDENT, "def must be followed by a valid identifier");
     check(lparen.getKind() == TokenKind.LPAREN || isThunk,
         "function def signature must contain arg list (..) or :");
 
+    // skip function name and colon/lparen
     skip += 2;
     if (isThunk) {
-      
+      // look for starting brace
+      Token rbrace = lookAhead(index, 3);
+
+      check(TokenKind.LBRACE != rbrace.getKind(),
+          "Function body parsing error, no post-processed do block available! (indicates a parsing bug)");
+      skip++;
+
+      // Find the balancing right brace:
+      int endAt = balancedSeek(TokenKind.LBRACE, TokenKind.RBRACE, index + 4);
+      check(endAt != -1, "Missing } in function definition, parsing bug?");
+
+      // parse normally, recursively.
+      SyntaxNode functionDoBlock = parseRange(index + 4, endAt);
+      System.out.println("Stuff: " + functionDoBlock);
     }
   }
 
@@ -158,5 +173,27 @@ public class Parser {
     }
 
     return null;
+  }
+
+  private int balancedSeek(TokenKind scopeStart, TokenKind seek, int startAt) {
+    int scopes = 0;
+    for (int i = startAt; i < tokens.size(); i++) {
+      Token token = tokens.get(i);
+      if (scopeStart == token.getKind())
+        scopes++;
+
+      if (seek == token.getKind()) {
+
+        // we skip closing tokens for ones we've already seen.
+        if (scopes == 0) {
+          return i;
+        }
+
+        scopes--;
+      }
+    }
+
+    // Failed to find anything
+    return -1;
   }
 }

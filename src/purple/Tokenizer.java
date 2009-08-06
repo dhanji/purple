@@ -54,11 +54,7 @@ public class Tokenizer {
       }
       
       // dot and comma separators
-      if ('.' == c || ',' == c
-          || '(' == c || ')' == c
-          || '{' == c || '}' == c
-          || '[' == c || ']' == c
-         ) {
+      if (charTokenKinds.containsKey(c)) {
 
         if (token.length() > 0)
           token = bakeToken(token);
@@ -113,20 +109,26 @@ public class Tokenizer {
         }
       }
 
-      // Reduce infix calls by rewriting them as postfix dot-notation calls
-      if (null != next
-          && TokenKind.DOT != token.getKind()
-          && TokenKind.IDENT == next.getKind()) {
-        
-        out.add(token);
-        out.add(new Token(".", TokenKind.DOT));
-        out.add(next);
-        out.add(new Token("(", TokenKind.LPAREN));
-        infixWraps++;
+      if (TokenKind.DEF != token.getKind()) {
 
-        // skip ahead 1
-        i++;
-        continue;
+        // Reduce infix calls by rewriting them as postfix dot-notation calls
+        if (null != next
+            && TokenKind.DOT != token.getKind()
+            && TokenKind.IDENT == next.getKind()) {
+
+          out.add(token);
+          out.add(new Token(".", TokenKind.DOT));
+          out.add(next);
+          out.add(new Token("(", TokenKind.LPAREN));
+          infixWraps++;
+
+          // skip ahead 1
+          i++;
+          continue;
+        }
+      } else {
+        // wrap free def functions as a { } do block.
+        
       }
 
       
