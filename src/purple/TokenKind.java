@@ -12,6 +12,7 @@ public enum TokenKind {
   /** balancers **/
   LBRACE, RBRACE,
   LPAREN, RPAREN,
+  GROUPING_LPAREN, GROUPING_RPAREN,
   LBRACKET, RBRACKET,
 
   /** separators **/
@@ -19,6 +20,7 @@ public enum TokenKind {
   COLON,
   THIN_ARROW,
   FAT_ARROW,
+  EOL,
 
   /** Keywords **/
   MODULE,

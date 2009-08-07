@@ -42,6 +42,11 @@ public class Tokenizer {
     for (int i = 0; i < expr.length; i++) {
       char c = expr[i];
 
+      // Add EOLs (and see if the world asplodes)
+      if ('\n' == c) {
+        tokens.add(new Token("\n", TokenKind.EOL));
+      }
+
       // Whitespace handler
       if (Character.isWhitespace(c)) {
 
@@ -80,77 +85,11 @@ public class Tokenizer {
     token = bakeToken(token);
 
     // Reduce token stream (optimizes tokens into more significant types)
-    reduceTokenStream();
+    tokens = new Reducer(tokens).reduceTokenStream();
 
     return tokens;
   }
 
-  private void reduceTokenStream() {
-    List<Token> out = new ArrayList<Token>();
-
-    int infixWraps = 0;  //number of times we've rewritten an infix as postfix parenthetical
-    for (int i = 0; i < tokens.size(); i++) {
-      Token token = tokens.get(i);
-      Token next = lookAhead(i, 1);
-
-      // reduce number (decimal) tokens
-      if (TokenKind.INTEGER == token.getKind()) {
-        Token nextNext = lookAhead(i, 2);
-
-        // if next is . and nextNext is an integer, then reduce to a decimal
-        if (null != nextNext && null != next) {
-          if (TokenKind.DOT == next.getKind() && TokenKind.INTEGER == nextNext.getKind()) {
-
-            // Maybe improve this some day.
-            out.add(new Token(String.format("%s.%s", token.getName(), nextNext.getName()), TokenKind.DECIMAL));
-            i += 2;
-            continue;
-          }
-        }
-      }
-
-      if (TokenKind.DEF != token.getKind()) {
-
-        // Reduce infix calls by rewriting them as postfix dot-notation calls
-        if (null != next
-            && TokenKind.DOT != token.getKind()
-            && TokenKind.IDENT == next.getKind()) {
-
-          out.add(token);
-          out.add(new Token(".", TokenKind.DOT));
-          out.add(next);
-          out.add(new Token("(", TokenKind.LPAREN));
-          infixWraps++;
-
-          // skip ahead 1
-          i++;
-          continue;
-        }
-      } else {
-        // wrap free def functions as a { } do block.
-        
-      }
-
-      
-      // otherwise do a dumb copy
-      out.add(token);
-    }
-
-    // terminate all infix psuedo-wraps
-    for (int x = 0; x < infixWraps; x++)
-      out.add(new Token(")", TokenKind.RPAREN));
-
-    //replace token stream with reduced stream
-    tokens = out;
-  }
-
-  private Token lookAhead(int i, int ahead) {
-    if (tokens.size() > i + ahead) {
-      return tokens.get(i + ahead);
-    }
-
-    return null;
-  }
 
   private StringBuilder bakeToken(StringBuilder token) {
     // short circuit zero-length tokens.

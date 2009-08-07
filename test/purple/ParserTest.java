@@ -126,10 +126,11 @@ public class ParserTest {
   @Test
   public final void multiLineInfixFunctionCall() {
     SyntaxNode node =
-        new Parser(new Tokenizer("11 +" +
-            "\n\n 4")
-            .tokenize()).parse(
-        );
+        new Parser(new Tokenizer("(11 +\n\n 4)")
+            .tokenize())
+            .parse();
+
+    System.out.println(node);
 
     assert node instanceof FunctionCall;
     FunctionCall call = (FunctionCall) node;

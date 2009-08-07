@@ -27,6 +27,7 @@ public class Parser {
   private int skip = 0;
 
   public SyntaxNode parse() {
+    System.out.println(tokens);
     return parseRange(0, tokens.size());
   }
 
@@ -93,7 +94,7 @@ public class Parser {
 
       // Find the balancing right brace:
       int endAt = balancedSeek(TokenKind.LBRACE, TokenKind.RBRACE, index + 4);
-      check(endAt != -1, "Missing } in function definition, parsing bug?");
+      check(endAt != -1, "Missing } in function definition, tokenization bug?");
 
       // parse normally, recursively.
       SyntaxNode functionDoBlock = parseRange(index + 4, endAt);

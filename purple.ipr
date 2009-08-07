@@ -411,6 +411,9 @@
     <option name="projectName" value="purple" />
   </component>
   <component name="ProjectFileVersion" converted="true" />
+  <component name="ProjectKey">
+    <option name="state" value="project:///Users/dhanji/src/purple/purple.ipr" />
+  </component>
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/purple.iml" filepath="$PROJECT_DIR$/purple.iml" />
