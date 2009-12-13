@@ -16,6 +16,7 @@ public class Token {
 
   @Override
   public String toString() {
+    String name = getPrintableName();
     return new StringBuilder().append("Token{")
         .append("name='")
         .append(name)
@@ -24,6 +25,10 @@ public class Token {
         .append(tokenKind)
         .append('}')
         .toString();
+  }
+
+  public String getPrintableName() {
+    return TokenKind.EOL.equals(this.tokenKind) ? "\\n" : this.name;
   }
 
   public TokenKind getKind() {

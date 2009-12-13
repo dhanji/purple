@@ -1,8 +1,27 @@
 package purple;
 
+import purple.syntax.PurpleGrammarException;
+
 import java.util.*;
 
 /**
+ * The language architecture works like this:
+ *
+ * Tokenizer -> Reducer -> Parser -> model
+ *
+ * The Tokenizer produces tokens from the raw source file. This
+ * token list is then optimized, condensed and regularized by the
+ * Reducer (for example, grouping parentheses are added) including
+ * syntactic sugar elements.
+ *
+ * Finally, the parser goes through the optimized token stream
+ * and builds a semantic program model from it, consisting of
+ * control flow structures, function declarations and so on.
+ *
+ * The model is then further processed by a compiler to produce
+ * an executably binary. Or it may be processed by an interpreter
+ * or other meta analysis tool. 
+ *
  * @author Dhanji R. Prasanna (dhanji@gmail com)
  */
 public class Tokenizer {
@@ -14,6 +33,9 @@ public class Tokenizer {
     this.expr = expression.toCharArray();
   }
 
+  /**
+   * These are tokens that are of a single character's width.
+   */
   private static final Map<Character, TokenKind> charTokenKinds;
 
   static {
@@ -37,13 +59,22 @@ public class Tokenizer {
   public List<Token> tokenize() {
     inToken = !Character.isWhitespace(expr[0]);
     isNumeric = true;
+    int inParen = 0;
 
     StringBuilder token = new StringBuilder();
     for (int i = 0; i < expr.length; i++) {
       char c = expr[i];
 
+      // This helps us skip newlines in () groups.
+      // TODO(dhanji): watch out for string and regex literals
+      if ('(' == c) {
+        inParen++;
+      } else if (')' == c) {
+        inParen--;
+      }
+
       // Add EOLs (and see if the world asplodes)
-      if ('\n' == c) {
+      if ('\n' == c && inParen == 0) {
         tokens.add(new Token("\n", TokenKind.EOL));
       }
 
@@ -105,7 +136,7 @@ public class Tokenizer {
   }
 
   private void process(String stringToken) {
-    // Do something with this token. Decide if it is an identifier or not?
+    // Do something with this token. Decide if it is an identifier or not.
     TokenKind tokenKind;
 
     if (isNumeric) {
@@ -116,7 +147,7 @@ public class Tokenizer {
 
     if (null == tokenKind) {
       // add compiler error.
-      throw new RuntimeException("compile error, unrecognized symbol: " + stringToken);
+      throw new PurpleGrammarException("compile error, unrecognized symbol: " + stringToken);
     }
 
     final Token token = new Token(stringToken, tokenKind);

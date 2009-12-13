@@ -1,5 +1,6 @@
 package purple.syntax;
 
+import purple.Stringizer;
 import purple.Token;
 import purple.TokenKind;
 import purple.syntax.model.*;
@@ -27,7 +28,7 @@ public class Parser {
   private int skip = 0;
 
   public SyntaxNode parse() {
-    System.out.println(tokens);
+    System.out.println(new Stringizer().detokenize(tokens.toArray(new Token[tokens.size()])));
     return parseRange(0, tokens.size());
   }
 

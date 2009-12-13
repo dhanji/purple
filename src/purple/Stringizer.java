@@ -7,7 +7,7 @@ package purple;
  *
  * @author dhanji@google.com (Dhanji R. Prasanna)
  */
-class Stringizer {
+public class Stringizer {
   public String detokenize(Token[] tokens) {
     StringBuilder builder = new StringBuilder();
     for (Token token : tokens) {
@@ -21,7 +21,7 @@ class Stringizer {
           out = "}}";
           break;
         default:
-          out = token.getName();
+          out = token.getPrintableName();
       }
 
       builder.append(out);

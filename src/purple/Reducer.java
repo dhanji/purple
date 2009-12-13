@@ -18,6 +18,11 @@ class Reducer {
 
     int infixWraps = 0;  //number of times we've rewritten an infix as postfix parenthetical
     int parenthetical = 0;
+
+    // State variable tracks when we are processing a function.
+    boolean inFunctionDef = false;
+    boolean shouldWriteRBrace = false; // needed to close the {} in a function def.
+
     for (int i = 0; i < tokens.size(); i++) {
       Token token = tokens.get(i);
       Token next = lookAhead(i, 1);
@@ -48,6 +53,28 @@ class Reducer {
         }
       }
 
+      // wraps a function body in {{ }} grouping.
+      if (inFunctionDef && TokenKind.COLON == token.getKind()) {
+        out.add(token);
+        out.add(new Token("{", TokenKind.LBRACE));
+        
+        // skip ahead 1
+        i++;
+        continue;
+      }
+
+      if (inFunctionDef && TokenKind.EOL == token.getKind()) {
+        if (shouldWriteRBrace) {
+          out.add(new Token("}", TokenKind.RBRACE));
+
+          // close function
+          shouldWriteRBrace = false;
+          inFunctionDef = false;
+        } else {
+          shouldWriteRBrace = true;
+        }
+      }
+
       if (TokenKind.DEF != token.getKind()) {
 
         // Reduce infix calls by rewriting them as postfix dot-notation calls
@@ -69,7 +96,7 @@ class Reducer {
         }
       } else {
         // wrap free def functions as a { } do block.
-
+        inFunctionDef = true;
       }
 
 
@@ -81,6 +108,11 @@ class Reducer {
     // terminate all infix psuedo-wraps
     for (int x = 0; x < infixWraps; x++)
       out.add(new Token(")", TokenKind.RPAREN));
+
+    // Terminate any function defs.
+    if (shouldWriteRBrace) {
+      out.add(new Token("}", TokenKind.RBRACE));
+    }
 
     //replace token stream with reduced stream
     tokens = out;

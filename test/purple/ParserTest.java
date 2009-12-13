@@ -194,7 +194,7 @@ public class ParserTest {
   @Test
   public final void simpleFunctionDefinition() {
     SyntaxNode node =
-        new Parser(new Tokenizer("def thunk:\n\n    58 + 2.flip")
+        new Parser(new Tokenizer("def thunk:\n\n    58 + 2.flip \n")
             .tokenize()).parse();
 
     System.out.println(node);
