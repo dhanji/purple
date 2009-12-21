@@ -38,8 +38,10 @@ public class Parser {
     for (;index < length; index++) {
       Token token = tokens.get(index);
 
+
+      // Parse function definition subtrees separately.
       if (TokenKind.DEF == token.getKind()) {
-        functionDef(index);
+        return functionDef(index);
       }
 
 
@@ -72,35 +74,51 @@ public class Parser {
   /**
    * Parsing rule for function definitions.
    */
-  private void functionDef(int index) {
+  private FunctionDef functionDef(int index) {
     // This is a function definition.
     Token funcName = lookAhead(index, 1);
     Token lparen = lookAhead(index, 2);
     boolean isThunk = lparen.getKind() == TokenKind.COLON;
 
-    System.out.println("function name = " + funcName);
+    System.out.println("lparen = " + lparen);
     check(funcName.getKind() == TokenKind.IDENT, "def must be followed by a valid identifier");
     check(lparen.getKind() == TokenKind.LPAREN || isThunk,
         "function def signature must contain arg list (..) or :");
 
     // skip function name and colon/lparen
     skip += 2;
+
+    System.out.println("look: " + lookAhead(index, 3));
+    if (lookAhead(index, 3).getKind() == TokenKind.RPAREN) {
+      isThunk = true;
+
+      // skip rparen/colon
+      skip += 2;
+    }
+
+    index += skip;
+
+
     if (isThunk) {
       // look for starting brace
-      Token rbrace = lookAhead(index, 3);
+      Token leftBrace = lookAhead(index, 1);
+      System.out.println("leftbra: " + leftBrace);
 
-      check(TokenKind.LBRACE != rbrace.getKind(),
+      check(TokenKind.LBRACE == leftBrace.getKind(),
           "Function body parsing error, no post-processed do block available! (indicates a parsing bug)");
       skip++;
 
       // Find the balancing right brace:
-      int endAt = balancedSeek(TokenKind.LBRACE, TokenKind.RBRACE, index + 4);
+      int endAt = balancedSeek(TokenKind.LBRACE, TokenKind.RBRACE, index + 2);
       check(endAt != -1, "Missing } in function definition, tokenization bug?");
 
       // parse normally, recursively.
-      SyntaxNode functionDoBlock = parseRange(index + 4, endAt);
-      System.out.println("Stuff: " + functionDoBlock);
+      SyntaxNode functionDoBlock = parseRange(index + 2, endAt);
+
+      return new FunctionDef(funcName.getName(), new String[0], functionDoBlock);
     }
+
+    throw new UnsupportedOperationException("Non-thunks nyi");
   }
 
   /**

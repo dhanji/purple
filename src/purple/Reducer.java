@@ -123,7 +123,7 @@ class Reducer {
     boolean inGroupingBlock = false;
     for (int i = 0; i < tokens.size(); i++) {
       Token token = tokens.get(i);
-      Token backTwo = null;
+      Token backTwo = null, backOne = null;
 
       // Make sure we dont slide below the 0 index.
       if (i > 1) {
@@ -131,10 +131,13 @@ class Reducer {
       }
 
       // Ensure that two back is not a DOT, in other words, that it's not a postfix
-      // function call arg list.
+      // function call arg list. Improve this into an if block.
       if (TokenKind.LPAREN == token.getKind()
-          && ( (null != backTwo && TokenKind.DOT != backTwo.getKind())
+          && ( (null != backTwo
+                && (TokenKind.DOT != backTwo.getKind()
+                && TokenKind.DEF != backTwo.getKind()))
               || backTwo == null)
+
           ) {
 
         // add it as an expression grouper.

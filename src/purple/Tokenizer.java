@@ -150,7 +150,6 @@ public class Tokenizer {
       throw new PurpleGrammarException("compile error, unrecognized symbol: " + stringToken);
     }
 
-    final Token token = new Token(stringToken, tokenKind);
-    tokens.add(token);
+    tokens.add(new Token(stringToken, tokenKind));
   }
 }
