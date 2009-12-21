@@ -28,6 +28,7 @@ class Reducer {
 
     // State variable tracks when we are processing a function.
     boolean inFunctionDef = false;
+    boolean inFunctionSignature = false;
     boolean shouldWriteRBrace = false; // needed to close the {} in a function def.
 
     for (int i = 0; i < tokens.size(); i++) {
@@ -75,6 +76,9 @@ class Reducer {
       if (inFunctionDef && TokenKind.COLON == token.getKind()) {
         out.add(token);
         out.add(new Token("{", TokenKind.LBRACE));
+
+        // out of function signature.
+        inFunctionSignature = false;
         
         // skip ahead 1
         i++;
@@ -97,6 +101,7 @@ class Reducer {
 
         // Reduce infix calls by rewriting them as postfix dot-notation calls
         if (null != next
+            && !inFunctionSignature
             && TokenKind.DOT != token.getKind()
             && TokenKind.LPAREN != token.getKind()
             && TokenKind.GROUPING_LPAREN != token.getKind()
@@ -115,6 +120,7 @@ class Reducer {
       } else {
         // wrap free def functions as a { } do block.
         inFunctionDef = true;
+        inFunctionSignature = true;
       }
 
 
@@ -127,7 +133,6 @@ class Reducer {
     for (int x = 0; x < infixWraps; x++) {
       out.add(new Token(")", TokenKind.RPAREN));
     }
-    System.out.println("infixwraps: " + infixWraps);
 
     // Terminate any function defs.
     if (shouldWriteRBrace) {

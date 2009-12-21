@@ -4,10 +4,10 @@ package purple;
  * @author Dhanji R. Prasanna (dhanji@gmail com)
  */
 public enum TokenKind {
-  IDENT, DOT,
+  IDENT, DOT, TYPE_IDENT,
 
   /** built in types/literals **/
-  INTEGER, DECIMAL, STRING,
+  INTEGER, DECIMAL, STRING, REGEX,
 
   /** balancers **/
   LBRACE, RBRACE,
@@ -40,6 +40,11 @@ public enum TokenKind {
       return THIN_ARROW;
     } else if ("=>".equals(st)) {
       return FAT_ARROW;
+    }
+
+    // Only type names are allowed to begin with upper case.
+    if (Character.isUpperCase(st.charAt(0))) {
+      return TYPE_IDENT; 
     }
 
     // TODO validate ident or return null

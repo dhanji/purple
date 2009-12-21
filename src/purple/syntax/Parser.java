@@ -118,7 +118,12 @@ public class Parser {
       arg = lookAhead(index, argIndex);
 
       if (TokenKind.IDENT == arg.getKind()) {
-        args.add(new Argument(arg.getName()));
+        args.add(new Argument(arg.getName(), "unknown"));
+      } else if (TokenKind.TYPE_IDENT == arg.getKind()) {
+        argIndex++;
+
+        // Add type and argument name.
+        args.add(new Argument(lookAhead(index, argIndex).getName(), arg.getName()));
       }
       
       argIndex++;

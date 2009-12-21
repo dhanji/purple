@@ -236,7 +236,7 @@ public class ParserTest {
   }
 
   @Test
-  public final void functionDefinitionWithArgs() {
+  public final void functionDefinitionWithOneArg() {
     SyntaxNode node =
         new Parser(new Tokenizer("def meth(arg):\n    58 + 2.flip \n")
             .tokenize()).parse();
@@ -249,6 +249,85 @@ public class ParserTest {
     assert "meth".equals(def.getName());
     assert def.getArgs().length == 1;
     assert "arg".equals(def.getArgs()[0].getName());
+
+    assert def.getBody() instanceof FunctionCall;
+    FunctionCall call = (FunctionCall)def.getBody();
+
+    assert call.getArgs().length == 2;
+    assert call.getArgs()[0] instanceof IntegerLiteral;
+    assert ((IntegerLiteral) call.getArgs()[0]).getValue() == 58;
+  }
+
+  @Test
+  public final void functionDefinitionWithManyArgs() {
+    SyntaxNode node =
+        new Parser(new Tokenizer("def meth(arg, a2, a3):\n    58 + 2.flip \n")
+            .tokenize()).parse();
+
+    System.out.println(node);
+
+    assert node instanceof FunctionDef;
+    FunctionDef def = (FunctionDef) node;
+
+    assert "meth".equals(def.getName());
+    assert def.getArgs().length == 3;
+    assert "arg".equals(def.getArgs()[0].getName());
+    assert "a2".equals(def.getArgs()[1].getName());
+    assert "a3".equals(def.getArgs()[2].getName());
+
+    assert def.getBody() instanceof FunctionCall;
+    FunctionCall call = (FunctionCall)def.getBody();
+
+    assert call.getArgs().length == 2;
+    assert call.getArgs()[0] instanceof IntegerLiteral;
+    assert ((IntegerLiteral) call.getArgs()[0]).getValue() == 58;
+  }
+
+  @Test
+  public final void functionDefinitionWithOneTypedArg() {
+    SyntaxNode node =
+        new Parser(new Tokenizer("def meth(String name):\n    58 + 2.flip \n")
+            .tokenize()).parse();
+
+    System.out.println(node);
+
+    assert node instanceof FunctionDef;
+    FunctionDef def = (FunctionDef) node;
+
+    assert "meth".equals(def.getName());
+    assert def.getArgs().length == 1;
+    assert "name".equals(def.getArgs()[0].getName());
+    assert "String".equals(def.getArgs()[0].getType());
+
+    assert def.getBody() instanceof FunctionCall;
+    FunctionCall call = (FunctionCall)def.getBody();
+
+    assert call.getArgs().length == 2;
+    assert call.getArgs()[0] instanceof IntegerLiteral;
+    assert ((IntegerLiteral) call.getArgs()[0]).getValue() == 58;
+  }
+
+  @Test
+  public final void functionDefinitionWithManyTypedArgs() {
+    SyntaxNode node =
+        new Parser(new Tokenizer("def meth(String name, Int age, Phone num):\n    58 + 2.flip \n")
+            .tokenize()).parse();
+
+    System.out.println(node);
+
+    assert node instanceof FunctionDef;
+    FunctionDef def = (FunctionDef) node;
+
+    assert "meth".equals(def.getName());
+    assert def.getArgs().length == 3;
+    assert "name".equals(def.getArgs()[0].getName());
+    assert "String".equals(def.getArgs()[0].getType());
+
+    assert "age".equals(def.getArgs()[1].getName());
+    assert "Int".equals(def.getArgs()[1].getType());
+
+    assert "num".equals(def.getArgs()[2].getName());
+    assert "Phone".equals(def.getArgs()[2].getType());
 
     assert def.getBody() instanceof FunctionCall;
     FunctionCall call = (FunctionCall)def.getBody();

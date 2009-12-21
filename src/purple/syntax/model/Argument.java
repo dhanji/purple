@@ -7,19 +7,26 @@ package purple.syntax.model;
  */
 public class Argument implements SyntaxNode {
   private final String name;
+  private final String type; // this will probably change to its own kind
 
-  public Argument(String name) {
+  public Argument(String name, String type) {
     this.name = name;
+    this.type = type;
   }
 
   public String getName() {
     return name;
   }
 
+  public String getType() {
+    return type;
+  }
+
   @Override
   public String toString() {
     return "Argument{" +
-        "name=" + name +
+        "type=" + type +
+        ", name=" + name +
         '}';
   }
 }
