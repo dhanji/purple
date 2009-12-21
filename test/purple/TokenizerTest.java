@@ -80,5 +80,36 @@ public class TokenizerTest {
     assert expected.equals(list) : list;
   }
 
+  @Test
+  public final void infixCallRewriteWithMoreGrouping() {
+    List<Token> list = new Tokenizer("(x + (y)) + (z - d)").tokenize();
+
+    // (x + (y)) + (z - d) -> (x.+(y)).+(z.-(d))
+    List<Token> expected = Arrays.asList(
+        new Token("(", TokenKind.GROUPING_LPAREN),
+        new Token("x", TokenKind.IDENT),
+        new Token(".", TokenKind.DOT),
+        new Token("+", TokenKind.IDENT),
+        new Token("(", TokenKind.LPAREN),
+        new Token("y", TokenKind.IDENT),
+        new Token(")", TokenKind.RPAREN),
+        new Token(")", TokenKind.GROUPING_RPAREN),
+        new Token(".", TokenKind.DOT),
+        new Token("+", TokenKind.IDENT),
+        new Token("(", TokenKind.LPAREN),
+        new Token("(", TokenKind.GROUPING_LPAREN),
+        new Token("z", TokenKind.IDENT),
+        new Token(".", TokenKind.DOT),
+        new Token("-", TokenKind.IDENT),
+        new Token("(", TokenKind.LPAREN),
+        new Token("d", TokenKind.IDENT),
+        new Token(")", TokenKind.RPAREN),
+        new Token(")", TokenKind.GROUPING_RPAREN),
+        new Token(")", TokenKind.RPAREN)
+    );
+
+    assert expected.equals(list) : list;
+  }
+
 
 }

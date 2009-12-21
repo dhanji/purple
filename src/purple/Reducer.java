@@ -14,6 +14,13 @@ class Reducer {
   }
 
   public List<Token> reduceTokenStream() {
+
+    // Initial pass tokenization to normalize between parenthetical function calls
+    // and expression grouping parentheticals.
+    tokens = normalizeGroupingParens();
+
+
+    // Progressive pass tokenization to rewrite infix function calls.
     List<Token> out = new ArrayList<Token>();
 
     int infixWraps = 0;  //number of times we've rewritten an infix as postfix parenthetical
@@ -26,6 +33,12 @@ class Reducer {
     for (int i = 0; i < tokens.size(); i++) {
       Token token = tokens.get(i);
       Token next = lookAhead(i, 1);
+
+      // We don't need to write automagic infix wrapping rparen )
+      // if encountering a group closure (coz it will do it for us)
+      if (TokenKind.GROUPING_RPAREN == token.getKind()) {
+        infixWraps--;
+      }
 
       // Guards against simple parenthetical blocks () <-- non scoping
       if (TokenKind.LPAREN == token.getKind()) {
@@ -111,8 +124,10 @@ class Reducer {
 
 
     // terminate all infix psuedo-wraps
-    for (int x = 0; x < infixWraps; x++)
+    for (int x = 0; x < infixWraps; x++) {
       out.add(new Token(")", TokenKind.RPAREN));
+    }
+    System.out.println("infixwraps: " + infixWraps);
 
     // Terminate any function defs.
     if (shouldWriteRBrace) {
@@ -122,17 +137,34 @@ class Reducer {
     //replace token stream with reduced stream
     tokens = out;
 
-    // Progressive pass tokenization to normalize between parenthetical function calls
-    // and expression grouping parentheticals.
-    out = new ArrayList<Token>(tokens.size());
+    return tokens;
+  }
+
+  private List<Token> normalizeGroupingParens() {
+    int tokenCount = tokens.size();
+    List<Token> out = new ArrayList<Token>(tokenCount);
     boolean inGroupingBlock = false;
-    for (int i = 0; i < tokens.size(); i++) {
+    for (int i = 0; i < tokenCount; i++) {
       Token token = tokens.get(i);
       Token backTwo = null;
 
       // Make sure we dont slide below the 0 index.
       if (i > 1) {
         backTwo = lookAhead(i, -2);
+      }
+
+      // Reduce unnecessary groups.
+      if (i > 2 && i < tokenCount - 2) {
+        Token next = lookAhead(i, 1);
+        if (TokenKind.LPAREN == token.getKind()
+            && TokenKind.IDENT == next.getKind()
+            && TokenKind.RPAREN == lookAhead(i, 2).getKind()) {
+
+          // skip the ( and ), adding just the ident in the middle.
+          out.add(next);
+          i += 2;
+          continue;
+        }
       }
 
       // Ensure that two back is not a DOT, in other words, that it's not a postfix
@@ -151,7 +183,6 @@ class Reducer {
 
       } else if (TokenKind.RPAREN == token.getKind() && inGroupingBlock) {
 
-        System.out.println("----" + token);
         // add the right parenthesis first.
         out.add(token);
 
@@ -163,11 +194,7 @@ class Reducer {
         out.add(token);
       }
     }
-
-    //replace token stream with reduced stream
-    tokens = out;
-
-    return tokens;
+    return out;
   }
 
   // For christ's sake clean this up!
