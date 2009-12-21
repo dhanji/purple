@@ -35,6 +35,11 @@ class Reducer {
       } else if (TokenKind.EOL == token.getKind() && parenthetical > 0) {
         // drain newlines inside an explicit parenthetical expression
         continue;
+      } else if (null != next
+          && TokenKind.EOL == token.getKind()
+          && TokenKind.EOL == next.getKind()) {
+        // collapse multiple consecutive newlines into one.
+        continue;
       }
 
       // reduce number (decimal) tokens
@@ -123,7 +128,7 @@ class Reducer {
     boolean inGroupingBlock = false;
     for (int i = 0; i < tokens.size(); i++) {
       Token token = tokens.get(i);
-      Token backTwo = null, backOne = null;
+      Token backTwo = null;
 
       // Make sure we dont slide below the 0 index.
       if (i > 1) {
@@ -146,7 +151,11 @@ class Reducer {
 
       } else if (TokenKind.RPAREN == token.getKind() && inGroupingBlock) {
 
-        // terminate this expressiong grouper
+        System.out.println("----" + token);
+        // add the right parenthesis first.
+        out.add(token);
+
+        // terminate this expression grouper
         out.add(new Token(")", TokenKind.GROUPING_RPAREN));
         inGroupingBlock = false;
 

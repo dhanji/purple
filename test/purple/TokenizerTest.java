@@ -59,7 +59,7 @@ public class TokenizerTest {
     System.out.println(new Stringizer().detokenize(list.toArray(new Token[list.size()])));
 
     // (x + y) + z -> (x.+(y)).+(z)
-    assert Arrays.asList(
+    List<Token> expected = Arrays.asList(
         new Token("(", TokenKind.GROUPING_LPAREN),
         new Token("x", TokenKind.IDENT),
         new Token(".", TokenKind.DOT),
@@ -73,7 +73,11 @@ public class TokenizerTest {
         new Token("(", TokenKind.LPAREN),
         new Token("z", TokenKind.IDENT),
         new Token(")", TokenKind.RPAREN)
-    ).equals(list) : list;
+    );
+
+    System.out.println(new Stringizer().detokenize(expected.toArray(new Token[10])));
+
+    assert expected.equals(list) : list;
   }
 
 

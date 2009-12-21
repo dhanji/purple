@@ -19,7 +19,7 @@ import java.util.*;
  * control flow structures, function declarations and so on.
  *
  * The model is then further processed by a compiler to produce
- * an executably binary. Or it may be processed by an interpreter
+ * an executable binary. Or it may be processed by an interpreter
  * or other meta analysis tool. 
  *
  * @author Dhanji R. Prasanna (dhanji@gmail com)

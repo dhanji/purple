@@ -7,10 +7,10 @@ import java.util.Arrays;
  */
 public class FunctionDef implements SyntaxNode {
   private final String name;
-  private final String[] args;
+  private final Argument[] args;
   private final SyntaxNode body;
 
-  public FunctionDef(String name, String[] args, SyntaxNode body) {
+  public FunctionDef(String name, Argument[] args, SyntaxNode body) {
     this.name = name;
     this.args = args;
     this.body = body;
@@ -20,7 +20,7 @@ public class FunctionDef implements SyntaxNode {
     return name;
   }
 
-  public String[] getArgs() {
+  public Argument[] getArgs() {
     return args;
   }
 

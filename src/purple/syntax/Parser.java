@@ -80,20 +80,18 @@ public class Parser {
     Token lparen = lookAhead(index, 2);
     boolean isThunk = lparen.getKind() == TokenKind.COLON;
 
-    System.out.println("lparen = " + lparen);
     check(funcName.getKind() == TokenKind.IDENT, "def must be followed by a valid identifier");
     check(lparen.getKind() == TokenKind.LPAREN || isThunk,
         "function def signature must contain arg list (..) or :");
 
     // skip function name and colon/lparen
-    skip += 2;
+    skip(2);
 
-    System.out.println("look: " + lookAhead(index, 3));
     if (lookAhead(index, 3).getKind() == TokenKind.RPAREN) {
       isThunk = true;
 
       // skip rparen/colon
-      skip += 2;
+      skip(2);
     }
 
     index += skip;
@@ -102,30 +100,53 @@ public class Parser {
     if (isThunk) {
       // look for starting brace
       Token leftBrace = lookAhead(index, 1);
-      System.out.println("leftbra: " + leftBrace);
 
       check(TokenKind.LBRACE == leftBrace.getKind(),
-          "Function body parsing error, no post-processed do block available! (indicates a parsing bug)");
-      skip++;
+          "Function body parsing error, no post-processed do block available! (parsing bug?)");
+      skip(1);
 
-      // Find the balancing right brace:
-      int endAt = balancedSeek(TokenKind.LBRACE, TokenKind.RBRACE, index + 2);
-      check(endAt != -1, "Missing } in function definition, tokenization bug?");
+      SyntaxNode functionDoBlock = doBlock(index);
 
-      // parse normally, recursively.
-      SyntaxNode functionDoBlock = parseRange(index + 2, endAt);
-
-      return new FunctionDef(funcName.getName(), new String[0], functionDoBlock);
+      return new FunctionDef(funcName.getName(), new Argument[0], functionDoBlock);
     }
 
-    throw new UnsupportedOperationException("Non-thunks nyi");
+    // Non thunks, i.e. has an argument list.
+    ArrayList<Argument> args = new ArrayList<Argument>();
+    int argIndex = 1;
+    Token arg;
+    do {
+      arg = lookAhead(index, argIndex);
+
+      if (TokenKind.IDENT == arg.getKind()) {
+        args.add(new Argument(arg.getName()));
+      }
+      
+      argIndex++;
+    } while (TokenKind.RPAREN != arg.getKind());
+
+    // Resize the array so we dont waste memory.
+    args.trimToSize();
+
+    // Skip all the arguments and the rparen.
+    index += skip(argIndex - 2);
+
+    return new FunctionDef(funcName.getName(), args.toArray(new Argument[args.size()]), doBlock(index));
+  }
+
+  private SyntaxNode doBlock(int index) {
+    // Find the balancing right brace:
+    int endAt = balancedSeek(TokenKind.LBRACE, TokenKind.RBRACE, index + 2);
+    check(endAt != -1, "Missing } in function definition, tokenization bug?");
+
+    // parse normally, recursively.
+    return parseRange(index + 2, endAt);
   }
 
   /**
    * Parses a parenthetical list of tokens into a stream of syntax nodes.
    */
   private SyntaxNode[] parseArgList(int index, List<SyntaxNode> args) {
-    // if 3 ahead is an lparen, then we have an arg list
+    // if 1 ahead is an lparen, then we have an arg list
     final Token firstToken = lookAhead(index, 1);
     boolean isBalanced = true;
 
@@ -143,7 +164,7 @@ public class Parser {
           // move start cursor past last comma.
           // and also skip comma and last token.
           index = j - 1;
-          skip += (j - index + 2);
+          skip(j - index + 2);
 
         } else if (TokenKind.RPAREN == current.getKind()) {
 
@@ -152,7 +173,7 @@ public class Parser {
           if (TokenKind.LPAREN != lookAhead(j, -1).getKind()) {
 
             args.add(parseRange(index + 2, j));
-            skip += (j - index + 2);
+            skip(j - index + 2);
           }
 
           // Closed properly.
@@ -164,7 +185,7 @@ public class Parser {
       check(isBalanced, "Missing ) in parenthetical function call");
     }
 
-    skip++;
+    skip(1);
     return args.toArray(new SyntaxNode[args.size()]);
   }
 
@@ -215,5 +236,9 @@ public class Parser {
 
     // Failed to find anything
     return -1;
+  }
+
+  private int skip(int skip) {
+    return this.skip += skip;
   }
 }

@@ -126,7 +126,7 @@ public class ParserTest {
   @Test
   public final void multiLineInfixFunctionCall() {
     SyntaxNode node =
-        new Parser(new Tokenizer("(11 +\n\n 4)")
+        new Parser(new Tokenizer("(11 +\n\n \n 4)")
             .tokenize())
             .parse();
 
@@ -226,6 +226,29 @@ public class ParserTest {
 
     assert "thunk".equals(def.getName());
     assert def.getArgs().length == 0;
+
+    assert def.getBody() instanceof FunctionCall;
+    FunctionCall call = (FunctionCall)def.getBody();
+
+    assert call.getArgs().length == 2;
+    assert call.getArgs()[0] instanceof IntegerLiteral;
+    assert ((IntegerLiteral) call.getArgs()[0]).getValue() == 58;
+  }
+
+  @Test
+  public final void functionDefinitionWithArgs() {
+    SyntaxNode node =
+        new Parser(new Tokenizer("def meth(arg):\n    58 + 2.flip \n")
+            .tokenize()).parse();
+
+    System.out.println(node);
+
+    assert node instanceof FunctionDef;
+    FunctionDef def = (FunctionDef) node;
+
+    assert "meth".equals(def.getName());
+    assert def.getArgs().length == 1;
+    assert "arg".equals(def.getArgs()[0].getName());
 
     assert def.getBody() instanceof FunctionCall;
     FunctionCall call = (FunctionCall)def.getBody();
