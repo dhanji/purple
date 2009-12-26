@@ -22,6 +22,10 @@ public class FunctionCall implements SyntaxNode {
     return args;
   }
 
+  public boolean isDoBlock() {
+    return false;
+  }
+
   @Override
   public String toString() {
     return "FunctionCall{" +

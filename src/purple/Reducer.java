@@ -72,8 +72,11 @@ class Reducer {
         }
       }
 
-      // wraps a function body in {{ }} grouping.
-      if (inFunctionDef && TokenKind.COLON == token.getKind()) {
+
+      // wraps a function body in { } braces (do block), but only if it's not already.
+      if (inFunctionDef 
+          && TokenKind.COLON == token.getKind()) {
+
         out.add(token);
         out.add(new Token("{", TokenKind.LBRACE));
 
@@ -87,6 +90,10 @@ class Reducer {
 
       if (inFunctionDef && TokenKind.EOL == token.getKind()) {
         if (shouldWriteRBrace) {
+          // Terminate infix wraps
+          terminateInfixWraps(out, infixWraps);
+          infixWraps = 0;
+          
           out.add(new Token("}", TokenKind.RBRACE));
 
           // close function
@@ -130,9 +137,7 @@ class Reducer {
 
 
     // terminate all infix psuedo-wraps
-    for (int x = 0; x < infixWraps; x++) {
-      out.add(new Token(")", TokenKind.RPAREN));
-    }
+    terminateInfixWraps(out, infixWraps);
 
     // Terminate any function defs.
     if (shouldWriteRBrace) {
@@ -143,6 +148,12 @@ class Reducer {
     tokens = out;
 
     return tokens;
+  }
+
+  private void terminateInfixWraps(List<Token> out, int infixWraps) {
+    for (int x = 0; x < infixWraps; x++) {
+      out.add(new Token(")", TokenKind.RPAREN));
+    }
   }
 
   private List<Token> normalizeGroupingParens() {
@@ -158,12 +169,13 @@ class Reducer {
         backTwo = lookAhead(i, -2);
       }
 
-      // Reduce unnecessary groups.
+      // Reduce redundant grouping. i.e groups like: (IDENT) -> IDENT
       if (i > 2 && i < tokenCount - 2) {
         Token next = lookAhead(i, 1);
         if (TokenKind.LPAREN == token.getKind()
-            && TokenKind.IDENT == next.getKind()
-            && TokenKind.RPAREN == lookAhead(i, 2).getKind()) {
+            && isStandalone(next)
+            && TokenKind.RPAREN == lookAhead(i, 2).getKind()
+            && TokenKind.DOT != lookAhead(i, -2).getKind()) {
 
           // skip the ( and ), adding just the ident in the middle.
           out.add(next);
@@ -171,6 +183,7 @@ class Reducer {
           continue;
         }
       }
+
 
       // Ensure that two back is not a DOT, in other words, that it's not a postfix
       // function call arg list. Improve this into an if block.
@@ -200,6 +213,11 @@ class Reducer {
       }
     }
     return out;
+  }
+
+  private static boolean isStandalone(Token next) {
+    return TokenKind.IDENT == next.getKind()
+        || TokenKind.INTEGER == next.getKind();
   }
 
   // For christ's sake clean this up!

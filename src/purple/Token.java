@@ -47,6 +47,34 @@ public class Token {
     this.balancingTokenIndex = balancingTokenIndex;
   }
 
+  public boolean isInteger() {
+    return tokenKind.equals(TokenKind.INTEGER);
+  }
+  
+  public boolean isDot() {
+    return tokenKind.equals(TokenKind.DOT);
+  }
+
+  public boolean isDef() {
+    return TokenKind.DEF.equals(tokenKind);
+  }
+
+  public boolean isEol() {
+    return TokenKind.EOL.equals(tokenKind);
+  }
+
+  public boolean is(TokenKind kind) {
+    return kind.equals(tokenKind);
+  }
+
+  public boolean isExpressionDelimiter() {
+    return TokenKind.EOL.equals(tokenKind)
+          || TokenKind.RBRACE.equals(tokenKind)
+          || TokenKind.IDENT.equals(tokenKind)
+          || TokenKind.RPAREN.equals(tokenKind)
+          || TokenKind.GROUPING_RPAREN.equals(tokenKind);
+  }
+
   // Optimize, these don't need to be null-safe
   @Override
   public boolean equals(Object o) {
@@ -67,5 +95,17 @@ public class Token {
     result = 31 * result + (tokenKind != null ? tokenKind.hashCode() : 0);
     result = 31 * result + balancingTokenIndex;
     return result;
+  }
+
+  static Token dot() {
+    return new Token(".", TokenKind.DOT);
+  }
+
+  static Token lparen() {
+    return new Token("(", TokenKind.LPAREN);
+  }
+
+  static Token rparen() {
+    return new Token(")", TokenKind.RPAREN);
   }
 }

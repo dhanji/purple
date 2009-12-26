@@ -78,13 +78,13 @@ public class Parser {
     // This is a function definition.
     Token funcName = lookAhead(index, 1);
     Token lparen = lookAhead(index, 2);
-    boolean isThunk = lparen.getKind() == TokenKind.COLON;
+    boolean isThunk = false;
 
     check(funcName.getKind() == TokenKind.IDENT, "def must be followed by a valid identifier");
-    check(lparen.getKind() == TokenKind.LPAREN || isThunk,
-        "function def signature must contain arg list (..) or :");
+    check(lparen.getKind() == TokenKind.LPAREN,
+        "function def signature must contain an arg list (..)");
 
-    // skip function name and colon/lparen
+    // skip function name and lparen
     skip(2);
 
     if (lookAhead(index, 3).getKind() == TokenKind.RPAREN) {
@@ -135,6 +135,12 @@ public class Parser {
     // Skip all the arguments and the rparen.
     index += skip(argIndex - 2);
 
+    // OK now chew up any legal tokens until the start of the func body
+    check(TokenKind.COLON == lookAhead(index, 0).getKind(),
+        "expected ':' after function signature");
+
+    System.out.println("dobl found -" + doBlock(index));
+
     return new FunctionDef(funcName.getName(), args.toArray(new Argument[args.size()]), doBlock(index));
   }
 
@@ -143,7 +149,34 @@ public class Parser {
     int endAt = balancedSeek(TokenKind.LBRACE, TokenKind.RBRACE, index + 2);
     check(endAt != -1, "Missing } in function definition, tokenization bug?");
 
-    // parse normally, recursively.
+    // split into chunks delimited by EOL
+    List<Pair<Integer, Integer>> ranges = new ArrayList<Pair<Integer, Integer>>();
+    int start = index + 2;
+    for (int i = start; i < endAt; i++) {
+      Token token = tokens.get(i);
+
+      if (token.isEol() && start < i) {
+        ranges.add(Pair.of(start, i));
+        start = i + 1;
+      }
+    }
+
+    // Add last chunk
+    if (start < endAt) {
+      ranges.add(Pair.of(start, endAt));
+    }
+
+    // Is this a multi-line doblock?
+    if (ranges.size() > 1) {
+      List<SyntaxNode> sequence = new ArrayList<SyntaxNode>();
+      for (Pair<Integer, Integer> range : ranges) {
+        sequence.add(parseRange(range.first, range.second));
+      }
+
+      return new DoBlock(sequence.toArray(new SyntaxNode[sequence.size()]));
+    }
+
+    // otherwise parse normally, recursively.
     return parseRange(index + 2, endAt);
   }
 

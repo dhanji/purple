@@ -15,10 +15,10 @@ public class Stringizer {
 
       switch (token.getKind()) {
         case GROUPING_LPAREN:
-          out = "{{";
+          out = "<<";
           break;
         case GROUPING_RPAREN:
-          out = "}}";
+          out = ">>";
           break;
         default:
           out = token.getPrintableName();

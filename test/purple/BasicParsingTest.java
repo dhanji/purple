@@ -5,9 +5,11 @@ import purple.syntax.model.*;
 import purple.syntax.Parser;
 
 /**
+ * Tests that ensure basic model generation from source code fragments.
+ *
  * @author Dhanji R. Prasanna (dhanji@gmail com)
  */
-public class ParserTest {
+public class BasicParsingTest {
 
   @Test
   public final void integer() {
@@ -49,7 +51,7 @@ public class ParserTest {
   }
 
   @Test
-  public final void postfixFunctionCallWithOneParentheticalArg() {
+  public final void postfixFunctionCallWithOneParentheticalIntArg() {
     SyntaxNode node =
         new Parser(new Tokenizer("11.+(1)").tokenize()).parse();
 
@@ -62,6 +64,22 @@ public class ParserTest {
     assert call.getArgs()[1] instanceof IntegerLiteral;
     assert ((IntegerLiteral) call.getArgs()[0]).getValue() == 11;
     assert ((IntegerLiteral) call.getArgs()[1]).getValue() == 1;
+  }
+
+  @Test
+  public final void postfixFunctionCallWithOneParentheticalArg() {
+    SyntaxNode node =
+        new Parser(new Tokenizer("11.+(stuff)").tokenize()).parse();
+
+    assert node instanceof FunctionCall;
+    FunctionCall call = (FunctionCall) node;
+
+    assert "+".equals(call.getName());
+    assert call.getArgs().length == 2;
+    assert call.getArgs()[0] instanceof IntegerLiteral;
+    assert call.getArgs()[1] instanceof Variable;
+    assert ((IntegerLiteral) call.getArgs()[0]).getValue() == 11;
+    assert "stuff".equals(((Variable) call.getArgs()[1]).getName());
   }
 
   @Test

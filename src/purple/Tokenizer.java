@@ -116,7 +116,7 @@ public class Tokenizer {
     token = bakeToken(token);
 
     // Reduce token stream (optimizes tokens into more significant types)
-    tokens = new Reducer(tokens).reduceTokenStream();
+    tokens = new BetterReducer(tokens).reduceTokenStream();
 
     return tokens;
   }
