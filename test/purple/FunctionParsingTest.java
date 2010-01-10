@@ -194,13 +194,79 @@ public class FunctionParsingTest {
 
     assert block.getSequence()[0] instanceof FunctionCall;
     FunctionCall call1 = (FunctionCall) block.getSequence()[0];
-    assert ((IntegerLiteral) call1.getArgs()[0]).getValue() == 58;
+    assert ((IntegerLiteral) call1.getArgs()[0]).getValue() == 58;  
 
     FunctionCall innerCall = (FunctionCall) call1.getArgs()[1];
     assert "flip".equals(innerCall.getName());
     assert innerCall.getArgs().length == 1;
     assert innerCall.getArgs()[0] instanceof IntegerLiteral;
     assert ((IntegerLiteral)innerCall.getArgs()[0]).getValue() == 2;
+  }
+
+  @Test
+  public final void groupedFreeFunctionCall() {
+    String putsOnePlusTwo = "puts 1 + (33 - 2)";
+    SyntaxNode node =
+        new Parser(new Tokenizer(putsOnePlusTwo)
+            .tokenize()).parse();
+
+    assert node instanceof FunctionCall;
+    FunctionCall call = (FunctionCall) node;
+    assert "puts".equals(call.getName());
+    
+    assert !call.isDoBlock();
+    assert call.getArgs().length == 1;
+    assert call.getArgs()[0] instanceof FunctionCall;
+
+    FunctionCall innerCall = (FunctionCall) call.getArgs()[0];
+    assert "+".equals(innerCall.getName());
+    assert innerCall.getArgs().length == 2;
+    assert innerCall.getArgs()[0] instanceof IntegerLiteral;
+    assert innerCall.getArgs()[1] instanceof FunctionCall;
+
+    assert ((IntegerLiteral)innerCall.getArgs()[0]).getValue() == 1;
+
+    FunctionCall groupInner = (FunctionCall) innerCall.getArgs()[1];
+    assert "-".equals(groupInner.getName());
+    assert groupInner.getArgs()[0] instanceof IntegerLiteral;
+    assert groupInner.getArgs()[1] instanceof IntegerLiteral;
+
+    assert ((IntegerLiteral)groupInner.getArgs()[0]).getValue() == 33;
+    assert ((IntegerLiteral)groupInner.getArgs()[1]).getValue() == 2;
+  }
+
+  @Test
+  public final void freeFunctionCallInFunction() {
+    String putsOnePlusTwo = "def hi: puts 1 + (33 - 2)";
+    SyntaxNode node =
+        new Parser(new Tokenizer(putsOnePlusTwo)
+            .tokenize()).parse();
+
+    System.out.println(node);
+
+    assert node instanceof FunctionCall;
+    FunctionCall call = (FunctionCall) node;
+    assert "puts".equals(call.getName());
+
+    assert !call.isDoBlock();
+    assert call.getArgs().length == 1;
+    assert call.getArgs()[0] instanceof FunctionCall;
+
+    FunctionCall innerCall = (FunctionCall) call.getArgs()[0];
+    assert "+".equals(innerCall.getName());
+    assert innerCall.getArgs().length == 2;
+    assert innerCall.getArgs()[0] instanceof IntegerLiteral;
+    assert innerCall.getArgs()[1] instanceof FunctionCall;
+
+    assert ((IntegerLiteral)innerCall.getArgs()[0]).getValue() == 1;
+
+    FunctionCall groupInner = (FunctionCall) innerCall.getArgs()[1];
+    assert "-".equals(groupInner.getName());
+    assert groupInner.getArgs()[0] instanceof IntegerLiteral;
+    assert groupInner.getArgs()[1] instanceof IntegerLiteral;
+
+    assert ((IntegerLiteral)groupInner.getArgs()[0]).getValue() == 33;
+    assert ((IntegerLiteral)groupInner.getArgs()[1]).getValue() == 2;
   }
 
   private static void assertArgument(Argument argument, String argName, String argType) {

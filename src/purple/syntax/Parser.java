@@ -1,6 +1,5 @@
 package purple.syntax;
 
-import purple.Stringizer;
 import purple.Token;
 import purple.TokenKind;
 import purple.syntax.model.*;
@@ -28,22 +27,34 @@ public class Parser {
   private int skip = 0;
 
   public SyntaxNode parse() {
-    System.out.println(new Stringizer().detokenize(tokens.toArray(new Token[tokens.size()])));
     return parseRange(0, tokens.size());
   }
 
-  private SyntaxNode parseRange(int index, int length) {
+  private SyntaxNode parseRange(int start, int length) {
     SyntaxNode node = null;
 
-    for (;index < length; index++) {
+    for (int index = start; index < length; index++) {
       Token token = tokens.get(index);
+
+      // Parse class definition subtrees separately.
+      if (token.is(TokenKind.CLASS)) {
+        return classDef(index);
+      }
 
 
       // Parse function definition subtrees separately.
-      if (TokenKind.DEF == token.getKind()) {
+      if (token.is(TokenKind.DEF)) {
         return functionDef(index);
       }
 
+      // If there is already a variable here, then this is a free function call.
+      // Free function call must always be the top most node in the parse branch.
+      if (node instanceof Variable && start == index) {
+        // LL(k) style parse: rest of stream.
+        SyntaxNode freeArg = parseRange(index, length);
+
+        return new FunctionCall(((Variable) node).getName(), new SyntaxNode[] { freeArg });
+      }
 
       // process first token as an expression (literal, var, etc.)
       node = processToken(token);
@@ -61,6 +72,7 @@ public class Parser {
         // replace root expression node with a wrapped function call node.
         List<SyntaxNode> args = new ArrayList<SyntaxNode>();
         args.add(node);
+
         node = new FunctionCall(twoAhead.getName(), parseArgList(index + skip, args));
 
         // skip over function call tokens
@@ -69,6 +81,44 @@ public class Parser {
     }
 
     return node;
+  }
+
+  /**
+   * Parsing rule for type definitions.
+   */
+  private SyntaxNode classDef(int index) {
+    Token typeName = lookAhead(index, 1);
+    check(typeName.is(TokenKind.TYPE_IDENT), "Expected type name: " + typeName.getName());
+    check(lookAhead(index, 2).is(TokenKind.COLON), "Expected ':' after type signature");
+    check(lookAhead(index, 3).is(TokenKind.LBRACE), "Expected '{' after type signature");
+
+    skip(3);
+    index += skip;
+
+    Token token = lookAhead(index, 1);
+    List<FieldDef> fields = new ArrayList<FieldDef>();
+    do {
+      if (token.is(TokenKind.TYPE_IDENT)) {
+        Token fieldName = lookAhead(index, 2);
+        check(fieldName != null, "Missing field name");
+        check(fieldName.is(TokenKind.IDENT), "Expected field name identifier after in class def");
+        
+        // TODO(dhanji): Replace with lookup from type pool.
+        fields.add(new FieldDef(fieldName.getName(), new ClassDef(token.getName(), null)));
+      }
+
+      skip(1);
+      index++;
+      token = lookAhead(index, 1);
+
+      // Reached end of the token stream?
+      if (null == token) {
+        break;
+      }
+
+    } while (!token.is(TokenKind.RBRACE));
+
+    return new ClassDef(typeName.getName(), fields);
   }
 
   /**
@@ -139,7 +189,7 @@ public class Parser {
     check(TokenKind.COLON == lookAhead(index, 0).getKind(),
         "expected ':' after function signature");
 
-    System.out.println("dobl found -" + doBlock(index));
+//    System.out.println("dobl found -" + doBlock(index));
 
     return new FunctionDef(funcName.getName(), args.toArray(new Argument[args.size()]), doBlock(index));
   }
@@ -239,6 +289,8 @@ public class Parser {
       return new IntegerLiteral(Integer.parseInt(token.getName()));
     } else if (TokenKind.DECIMAL == token.getKind()) {
       return new Decimal(Double.parseDouble(token.getName()));
+    } else if (token.is(TokenKind.LPAREN) || token.is(TokenKind.RPAREN)) {
+      return null; // skip parens
     }
 
     // otherwise validate and treat as identifier...

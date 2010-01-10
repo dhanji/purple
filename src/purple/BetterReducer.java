@@ -27,8 +27,6 @@ public class BetterReducer {
     tokens = normalizeOnelineFuncsAndGrouping();
     tokens = rewriteInfixCallsAsPostfix();
 
-    System.out.println(new Stringizer().detokenize(tokens.toArray(new Token[tokens.size()])));
-
     return tokens;
   }
 
@@ -52,6 +50,7 @@ public class BetterReducer {
     for (int i = 0; i < size; i++) {
       Token token = tokens.get(i);
 
+      // Account for function signatures
       if (token.isDef() && isNext(i, TokenKind.IDENT)) {
         state = IN_FUNC_SIG;
       } else if (token.is(TokenKind.COLON) && state == IN_FUNC_SIG) {
@@ -59,8 +58,18 @@ public class BetterReducer {
         state = FREE;
       }
 
+      // Class definitions also should be skipped.
+      if (token.is(TokenKind.CLASS) && isNext(i, TokenKind.TYPE_IDENT, TokenKind.COLON)) {
+        state = IN_CLASS_DEF;
+      }
+
+      // end class def.
+      if (state == IN_CLASS_DEF && token.is(TokenKind.RBRACE)) {
+        state = FREE;
+      }
+
       // We have to skip function signatures.
-      if (state != IN_FUNC_SIG) {
+      if (state != IN_FUNC_SIG && state != IN_CLASS_DEF) {
 
         // (Expr) IDENT (Expr)
         if (isAtom(token) && isNext(i, TokenKind.IDENT)) {
@@ -133,6 +142,7 @@ public class BetterReducer {
   private static final int FREE = 0;
   private static final int IN_FUNC_SIG = 1;
   private static final int IN_FUNC_BODY = 2;
+  private static final int IN_CLASS_DEF = 3;
   private List<Token> normalizeOnelineFuncsAndGrouping() {
     int size = tokens.size();
     List<Token> out = new ArrayList<Token>(size);

@@ -1,5 +1,7 @@
 package purple;
 
+import java.util.List;
+
 /**
  * Detokenizes a tokenstream into a string.
  *
@@ -8,6 +10,10 @@ package purple;
  * @author dhanji@google.com (Dhanji R. Prasanna)
  */
 public class Stringizer {
+  public String detokenize(List<Token> tokens) {
+    return detokenize(tokens.toArray(new Token[tokens.size()]));
+  }
+
   public String detokenize(Token[] tokens) {
     StringBuilder builder = new StringBuilder();
     for (Token token : tokens) {
@@ -28,5 +34,9 @@ public class Stringizer {
     }
 
     return builder.toString();
+  }
+
+  public static String tokenizeAndStringify(String script) {
+    return new Stringizer().detokenize(new Tokenizer(script).tokenize());
   }
 }
