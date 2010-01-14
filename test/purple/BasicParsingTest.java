@@ -23,7 +23,7 @@ public class BasicParsingTest {
   
   @Test
   public final void freeFunctionCall() {
-    String putsOnePlusTwo = "puts 1 + 2";
+    String putsOnePlusTwo = "puts(1 + 2)";
     SyntaxNode node =
         new Parser(new Tokenizer(putsOnePlusTwo)
             .tokenize()).parse();
@@ -44,6 +44,36 @@ public class BasicParsingTest {
     assert ((IntegerLiteral)innerCall.getArgs()[1]).getValue() == 2;
   }
   
+
+  @Test
+  public final void freeFunctionCallsNested() {
+    String putsOnePlusTwo = "puts(1 + puts(2))";
+    SyntaxNode node =
+        new Parser(new Tokenizer(putsOnePlusTwo)
+            .tokenize()).parse();
+
+    System.out.println(node);
+
+    assert node instanceof FunctionCall;
+    FunctionCall call = (FunctionCall) node;
+    assert "puts".equals(call.getName());
+    assert call.getArgs().length == 1;
+    assert call.getArgs()[0] instanceof FunctionCall;
+
+    FunctionCall innerCall = (FunctionCall) call.getArgs()[0];
+    assert "+".equals(innerCall.getName());
+    assert innerCall.getArgs().length == 2;
+    assert innerCall.getArgs()[0] instanceof IntegerLiteral;
+    assert ((IntegerLiteral)innerCall.getArgs()[0]).getValue() == 1;
+    assert innerCall.getArgs()[1] instanceof FunctionCall;
+
+    FunctionCall innerPuts = (FunctionCall)innerCall.getArgs()[1];
+    assert "puts".equals(innerPuts.getName());
+    assert innerPuts.getArgs().length == 1;
+    assert innerPuts.getArgs()[0] instanceof IntegerLiteral;
+    assert ((IntegerLiteral)innerPuts.getArgs()[0]).getValue() == 2;
+  }
+
 
   @Test
   public final void postfixFunctionCall() {

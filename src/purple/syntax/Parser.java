@@ -49,16 +49,18 @@ public class Parser {
 
       // If there is already a variable here, then this is a free function call.
       // Free function call must always be the top most node in the parse branch.
-      if (node instanceof Variable && start == index) {
+//      if (node instanceof Variable && start == index) {
+      Token next = lookAhead(index, 1);
+      if (token.is(TokenKind.IDENT) && null != next && next.is(TokenKind.LPAREN)) {
+        int endAt = balancedSeek(TokenKind.LPAREN, TokenKind.RPAREN, index + 2);
         // LL(k) style parse: rest of stream.
-        SyntaxNode freeArg = parseRange(index, length);
+        SyntaxNode freeArg = parseRange(index + 2, endAt);
 
-        return new FunctionCall(((Variable) node).getName(), new SyntaxNode[] { freeArg });
+        return new FunctionCall(token.getName(), new SyntaxNode[] { freeArg });
       }
 
       // process first token as an expression (literal, var, etc.)
       node = processToken(token);
-      final Token next = lookAhead(index, 1);
 
       // if the next token is a dot, then this whole thing is a
       // postfix function call.

@@ -86,7 +86,7 @@ public class BetterReducer {
           continue;
         }
 
-        if (token.isExpressionDelimiter() && infixWrap > 0) {
+        if (isExpressionDelimiter(token, lookAhead(i, 1)) && infixWrap > 0) {
           // close wrap
           out.add(token);
           out.add(Token.rparen());
@@ -104,6 +104,14 @@ public class BetterReducer {
       infixWrap--;
     }
     return out;
+  }
+
+  private boolean isExpressionDelimiter(Token token, Token next) {
+    return token.isExpressionDelimiter()
+
+        // Free idents are expression delimiters (i.e. infix operators), however
+        // idents followed by a lparen are not (they are new subexpressions)
+        || (token.is(TokenKind.IDENT) && null != next && !next.is(TokenKind.LPAREN));
   }
 
   private static boolean isAtom(Token back) {

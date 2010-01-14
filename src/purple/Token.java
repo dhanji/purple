@@ -70,7 +70,6 @@ public class Token {
   public boolean isExpressionDelimiter() {
     return TokenKind.EOL.equals(tokenKind)
           || TokenKind.RBRACE.equals(tokenKind)
-          || TokenKind.IDENT.equals(tokenKind)
           || TokenKind.RPAREN.equals(tokenKind)
           || TokenKind.GROUPING_RPAREN.equals(tokenKind);
   }

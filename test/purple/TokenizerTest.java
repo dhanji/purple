@@ -174,4 +174,26 @@ public class TokenizerTest {
 
     assert expected.equals(list) : list;
   }
+
+  @Test
+  public final void infixWithNestedFreeFunction() {
+    List<Token> list = new Tokenizer("a + puts(1)").tokenize();
+
+    System.out.println(new Stringizer().detokenize(list));
+
+    // a.(puts(1))
+    List<Token> expected = Arrays.asList(
+        new Token("a", TokenKind.IDENT),
+        new Token(".", TokenKind.DOT),
+        new Token("+", TokenKind.IDENT),
+        new Token("(", TokenKind.LPAREN),
+        new Token("puts", TokenKind.IDENT),
+        new Token("(", TokenKind.LPAREN),
+        new Token("1", TokenKind.INTEGER),
+        new Token(")", TokenKind.RPAREN),
+        new Token(")", TokenKind.RPAREN)
+    );
+
+    assert expected.equals(list) : list;
+  }
 }

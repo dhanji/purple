@@ -205,7 +205,7 @@ public class FunctionParsingTest {
 
   @Test
   public final void groupedFreeFunctionCall() {
-    String putsOnePlusTwo = "puts 1 + (33 - 2)";
+    String putsOnePlusTwo = "puts (1 + (33 - 2))";
     SyntaxNode node =
         new Parser(new Tokenizer(putsOnePlusTwo)
             .tokenize()).parse();
@@ -237,13 +237,18 @@ public class FunctionParsingTest {
 
   @Test
   public final void freeFunctionCallInFunction() {
-    String putsOnePlusTwo = "def hi: puts 1 + (33 - 2)";
+    String putsOnePlusTwo = "def hi: puts (1 + (33 - 2))";
     SyntaxNode node =
         new Parser(new Tokenizer(putsOnePlusTwo)
             .tokenize()).parse();
 
-    System.out.println(node);
+    assert node instanceof FunctionDef;
+    FunctionDef def = (FunctionDef) node;
+    assert "hi".equals(def.getName());
+    assert def.getArgs().length == 0;
 
+    // validate the body is correctly parsed.
+    node = def.getBody();
     assert node instanceof FunctionCall;
     FunctionCall call = (FunctionCall) node;
     assert "puts".equals(call.getName());
